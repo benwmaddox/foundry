@@ -1,6 +1,8 @@
 module github.com/benwmaddox/foundry
 
-go 1.22.2
+go 1.25
+
+toolchain go1.25.3
 
 require (
 	github.com/yuin/goldmark v1.7.13

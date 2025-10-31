@@ -2,6 +2,10 @@
 
 Foundry Core is a small Go library of stable primitives for generating static sites. It focuses on fast full rebuilds, parallel generation, diff-aware file writes, translation helpers, and template ergonomics while leaving site-specific architecture in your hands.
 
+## Requirements
+
+- Go 1.25.3 or newer
+
 ## Features
 
 - File primitives: `WriteIfChanged`, `CopyFileIfChanged`, `EnsureDir`
