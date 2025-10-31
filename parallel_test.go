@@ -9,8 +9,8 @@ import (
 func TestForEachParallel(t *testing.T) {
 	items := []int{1, 2, 3, 4, 5, 6}
 	var (
-		mu   sync.Mutex
-		sum  int
+		mu    sync.Mutex
+		sum   int
 		calls []int
 	)
 

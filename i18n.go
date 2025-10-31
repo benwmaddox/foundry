@@ -15,6 +15,41 @@ import (
 // Translations represents a map of translation keys to localized strings.
 type Translations map[string]string
 
+// Clone returns a shallow copy of the translation map. Mutating the clone does
+// not affect the original map.
+func (t Translations) Clone() Translations {
+	if t == nil {
+		return Translations{}
+	}
+	copyMap := make(Translations, len(t))
+	for k, v := range t {
+		copyMap[k] = v
+	}
+	return copyMap
+}
+
+// Lookup retrieves the value for key, falling back to the first optional value
+// supplied. If neither the key nor fallback are available, key itself is
+// returned to make template debugging friendlier.
+func (t Translations) Lookup(key string, fallback ...string) string {
+	if t != nil {
+		if v, ok := t[key]; ok {
+			return v
+		}
+	}
+	if len(fallback) > 0 {
+		return fallback[0]
+	}
+	return key
+}
+
+// Format looks up key and applies fmt.Sprintf to the result. Missing keys fall
+// back to fmt.Sprintf(key, args...).
+func (t Translations) Format(key string, args ...any) string {
+	val := t.Lookup(key)
+	return formatString(val, args...)
+}
+
 // LoadTranslations looks for translation data inside dir for the specified
 // language. It supports .json, .yaml, and .yml files named <lang>.<ext>.
 // Missing files yield an empty translation map.
@@ -73,19 +108,10 @@ func LoadTranslations(dir string, lang string) (Translations, error) {
 // key is missing the key itself is returned unless a fallback string is
 // provided as the first variadic argument.
 func TemplateFuncs(t Translations) template.FuncMap {
-	copyMap := make(Translations, len(t))
-	for k, v := range t {
-		copyMap[k] = v
-	}
+	copyMap := t.Clone()
 
 	get := func(key string, fallback ...string) string {
-		if val, ok := copyMap[key]; ok {
-			return val
-		}
-		if len(fallback) > 0 {
-			return fallback[0]
-		}
-		return key
+		return copyMap.Lookup(key, fallback...)
 	}
 
 	return template.FuncMap{

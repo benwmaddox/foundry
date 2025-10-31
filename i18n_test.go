@@ -94,3 +94,32 @@ func containsAll(out string, needles []string) bool {
 	}
 	return true
 }
+
+func TestTranslationsHelpers(t *testing.T) {
+	original := Translations{
+		"hello": "Hello",
+	}
+	clone := original.Clone()
+	clone["hello"] = "Hola"
+
+	if original["hello"] != "Hello" {
+		t.Fatalf("expected clone mutation to not affect original")
+	}
+
+	if got := original.Lookup("hello"); got != "Hello" {
+		t.Fatalf("Lookup existing -> %q", got)
+	}
+	if got := original.Lookup("missing", "fallback"); got != "fallback" {
+		t.Fatalf("Lookup fallback -> %q", got)
+	}
+	if got := original.Lookup("missing"); got != "missing" {
+		t.Fatalf("Lookup missing -> %q", got)
+	}
+
+	if got := original.Format("hello"); got != "Hello" {
+		t.Fatalf("Format existing -> %q", got)
+	}
+	if got := original.Format("Hi %s", "Ben"); got != "Hi Ben" {
+		t.Fatalf("Format fallback -> %q", got)
+	}
+}

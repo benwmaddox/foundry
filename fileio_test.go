@@ -48,6 +48,23 @@ func TestWriteIfChanged_Idempotent(t *testing.T) {
 	}
 }
 
+func TestWriteIfChangedCreatesDirectories(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "nested", "path", "file.txt")
+
+	if err := WriteIfChanged(target, []byte("content")); err != nil {
+		t.Fatalf("WriteIfChanged: %v", err)
+	}
+
+	data, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	if got := string(data); got != "content" {
+		t.Fatalf("content mismatch got %q", got)
+	}
+}
+
 func TestCopyFileIfChanged(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src.txt")
@@ -66,6 +83,34 @@ func TestCopyFileIfChanged(t *testing.T) {
 	}
 	if got, want := string(data), "copy me"; got != want {
 		t.Fatalf("got %q want %q", got, want)
+	}
+}
+
+func TestCopyFileIfChangedIdempotent(t *testing.T) {
+	dir := t.TempDir()
+	src := filepath.Join(dir, "src.txt")
+	dst := filepath.Join(dir, "dst.txt")
+
+	if err := os.WriteFile(src, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("write src: %v", err)
+	}
+	if err := CopyFileIfChanged(src, dst); err != nil {
+		t.Fatalf("first copy: %v", err)
+	}
+	info1, err := os.Stat(dst)
+	if err != nil {
+		t.Fatalf("stat dst: %v", err)
+	}
+	time.Sleep(10 * time.Millisecond)
+	if err := CopyFileIfChanged(src, dst); err != nil {
+		t.Fatalf("second copy: %v", err)
+	}
+	info2, err := os.Stat(dst)
+	if err != nil {
+		t.Fatalf("stat dst second: %v", err)
+	}
+	if !info1.ModTime().Equal(info2.ModTime()) {
+		t.Fatalf("expected modtime unchanged")
 	}
 }
 
